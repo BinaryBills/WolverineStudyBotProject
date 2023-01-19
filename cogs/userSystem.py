@@ -13,6 +13,56 @@ import mysql.connector
 import random
 from easy_pil import *
 
+async def userCard(row, author, guild):
+         try:
+          levelStats = list(row)
+          level = int(levelStats[1])
+          xp = int(levelStats[2])
+         except TypeError:
+             level = 0
+             xp = 0
+         
+         userCard = {
+             "name": f"{author}",
+             "xp" : xp,
+             "level" : level,
+             "next_level_xp": 100,
+             "percentage": xp,
+            }
+             
+         #reaches
+         background = Editor(Canvas((900,300), color = "#00294e"))
+         profile_picture = await load_image_async(str(author.avatar.url))
+         profile = Editor(profile_picture).resize((150,150)).circle_image()
+         poppins = Font.poppins(size=40)
+         poppins_small = Font.poppins(size=30)
+         
+         #reaches
+         card_right_shape = [(600,0), (750,300), (900,300), (900,0)]
+         background.polygon(card_right_shape, color="#f2c514")
+         background.paste(profile, (30,30))
+       
+         
+         #BAR
+         background.rectangle( (30,220), width = 650, height = 40, color = "#FFFFFF" )
+         print("does it ever reach here")
+         background.bar( (30,220), max_width=650, height=40, percentage = userCard["percentage"], color = "#282828", radius=0)
+         background.text( (200,40), userCard["name"], font=poppins, color = "#f2c514")
+         
+        
+         
+         background.rectangle( (200,100), width = 350, height=2, fill = "#f2c514")
+         
+         background.text(
+             (200,130), 
+             f"Level - {userCard['level']} | XP - {userCard['xp']}/{userCard['next_level_xp']}",
+             font = poppins_small,
+             color = "#f2c514",
+         )
+        
+         file = discord.File(fp=background.image_bytes, filename = "levelcard.png")
+         return file
+    
 
 class userSystem(commands.Cog):
     def __init__(self,client):
@@ -55,7 +105,9 @@ class userSystem(commands.Cog):
              level += 1
              await sqlServer.mysqli_user_query(settings.conn, "UPDATE levels SET level = {} WHERE discord_ID = {} AND guild = {}".format(level,author.id,guild.id))
              await sqlServer.mysqli_user_query(settings.conn, "UPDATE levels SET xp = {} WHERE discord_ID = {} AND guild = {}".format(0,author.id,guild.id))
+             file = await userCard(row, author, guild)
              await message.channel.send(f"{author.mention} has leveled up to level **{level}**!")
+             
              
     @app_commands.command(name = "lvl", description = "Check your level in the guild!")
     async def level(self,interaction: discord.Interaction):
@@ -69,55 +121,9 @@ class userSystem(commands.Cog):
          await sqlServer.mysqli_user_query(settings.conn, sql)
         else:
          """User was found"""
-         try:
-             levelStats = list(row)
-             level = int(levelStats[1])
-             xp = int(levelStats[2])
-         except TypeError:
-             level = 0
-             xp = 0
-         
-         userCard = {
-             "name": f"{author}",
-             "xp" : xp,
-             "level" : level,
-             "next_level_xp": 100,
-             "percentage": xp,
-         }
-             
-         #reaches
-         background = Editor(Canvas((900,300), color = "#00294e"))
-         profile_picture = await load_image_async(str(author.avatar.url))
-         profile = Editor(profile_picture).resize((150,150)).circle_image()
-         poppins = Font.poppins(size=40)
-         poppins_small = Font.poppins(size=30)
-         
-         #reaches
-         card_right_shape = [(600,0), (750,300), (900,300), (900,0)]
-         background.polygon(card_right_shape, color="#f2c514")
-         background.paste(profile, (30,30))
-       
-         
-         #BAR
-         background.rectangle( (30,220), width = 650, height = 40, color = "#FFFFFF" )
-         print("does it ever reach here")
-         background.bar( (30,220), max_width=650, height=40, percentage = userCard["percentage"], color = "#282828", radius=0)
-         background.text( (200,40), userCard["name"], font=poppins, color = "#f2c514")
-         
-        
-         
-         background.rectangle( (200,100), width = 350, height=2, fill = "#f2c514")
-         
-         background.text(
-             (200,130), 
-             f"Level - {userCard['level']} | XP - {userCard['xp']}/{userCard['next_level_xp']}",
-             font = poppins_small,
-             color = "#f2c514",
-         )
-        
-         file = discord.File(fp=background.image_bytes, filename = "levelcard.png")
+         file = await userCard(row, author, guild)
          await interaction.response.send_message(file=file)
-         print("does it ever reach here")
+       
              
          
         
