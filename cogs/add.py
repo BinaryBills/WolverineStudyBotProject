@@ -9,7 +9,7 @@ from discord import app_commands
 from discord import ui
 
 class myModal(ui.Modal, title= "Upload a Study Resource"):
-    field1 = ui.TextInput(label="Enter the Department:", placeholder = "CIS, IMSE, GEOL,...", style=discord.TextStyle.short)
+    field1 = ui.TextInput(label="Enter the Course:", placeholder = "CIS, IMSE, GEOL,...", style=discord.TextStyle.short)
     field2 = ui.TextInput(label="Enter the Course Number:", placeholder = "150,200, 350...", style=discord.TextStyle.short)
     field3 = ui.TextInput(label="Enter the Topic:", placeholder = "Recursion, Theory of forms,Tension force...   ", style=discord.TextStyle.short)
     field4 = ui.TextInput(label="Enter the link to the resource:", placeholder = " https://www.youtube.com/watch?v=4agL-MQq05E", style=discord.TextStyle.short)
