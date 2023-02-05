@@ -28,12 +28,13 @@ class __setup__(commands.Cog):
         print(f'Status: {self.client.user} is currently online!')
         print("Current Time: " + settings.getTime())
         print("=================================================")
-               
+             
     @app_commands.command(name = "ping", description = "Displays the bot's ping")
     async def ping(self, interaction: discord.Interaction):
         """Tests the latency of the bot"""
         await interaction.response.send_message(f"Pong! {round(self.client.latency * 1000)}ms")
         
+  
 async def setup(client):
     await client.add_cog(__setup__(client))
     
