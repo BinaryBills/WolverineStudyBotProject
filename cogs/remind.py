@@ -36,7 +36,6 @@ class remind(commands.Cog):
         self.client = client
         
    
-
     @app_commands.command(name = "remind", description = "Set a reminder using WolverineStudyBot!")
     async def remind(self, interaction: discord.Interaction, time : str,*, unit: str, task : str):
 
@@ -50,6 +49,9 @@ class remind(commands.Cog):
         if converted_time == -2:
             await interaction.response.send_message("The time must be an integer")
             return
+        
+        if (int(converted_time) > 2419000):   
+         await interaction.response.send_message("Time cannot be more than 28 days!")
 
         @commands.Cog.listener()
         async def setReminder(message, channel, user, converted_time, task):  
@@ -68,7 +70,7 @@ class remind(commands.Cog):
        
         
       
-        
+
         
         
         
