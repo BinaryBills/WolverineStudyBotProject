@@ -75,24 +75,29 @@ class mod(commands.Cog):
     @app_commands.checks.bot_has_permissions(moderate_members=True)
     @app_commands.command(name="mute", description="Mutes a user")
     async def mute(self, interaction: discord.Interaction, member: discord.Member, seconds: int = 0, minutes: int = 0, hours: int = 0, days: int = 0, reason: str = None):
-     if await is_owner(interaction,member) == True and (interaction.user.id == member.id) and (member.guild_permissions.manage_messages):
-        await interaction.response.send_message("User specified is a priviledged user!")
-        return
-    
-     duration_seconds = (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60) + seconds
+      if await is_owner(interaction, member) == False and (interaction.user.id != member.id) and (not member.guild_permissions.manage_messages):
+         duration_seconds = (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60) + seconds
      
-     if duration_seconds > 2419200:
-       await interaction.response.send_message("The time you entered exceeds the maximum of 28 days!")
-       return
+         if duration_seconds > 2419200:
+          await interaction.response.send_message("The time you entered exceeds the maximum of 28 days!")
+          return
    
-     if duration_seconds < 0:
-       await interaction.response.send_message("Please enter a positive integer!")
-       return
+         if duration_seconds < 0:
+          await interaction.response.send_message("Please enter a positive integer!")
+          return
           
          
-     duration = datetime.timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
-     await member.timeout(duration, reason=reason)
-     await interaction.response.send_message(f'{member.mention} was timeouted for {duration}', ephemeral=True)
+         duration = datetime.timedelta(seconds=seconds, minutes=minutes, hours=hours, days=days)
+         await member.timeout(duration, reason=reason)
+         await interaction.response.send_message(f'{member.mention} was timeouted for {duration}', ephemeral=True)
+        
+      else:
+        await interaction.response.send_message("User specified is a priviledged user!")
+        
+        
+        return
+    
+    
         
     #all errors will be handled here 
     async def cog_app_command_error(self, interaction: discord.Interaction, error: AppCommandError):
