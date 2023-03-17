@@ -1,6 +1,6 @@
 #Author: BinaryBills
-#Creation Date: January 17, 2022
-#Date Modified: January 18, 2022
+#Creation Date: January 17, 2023
+#Date Modified: January 18, 2023
 #Purpose: This file's responsibility is to add users to the database and measure their engagement in a server.
 
 import discord

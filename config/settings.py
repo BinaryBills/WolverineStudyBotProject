@@ -1,6 +1,6 @@
 #Author: BinaryBills
-#Creation Date: January 8, 2022
-#Date Modified: January 17, 2022
+#Creation Date: January 8, 2023
+#Date Modified: March 17, 2023
 #Purpose: This file is responsible for loading the bot's sensitive data,
 #connecting to the targeted SQL server, and adding all the tables to 
 #the database needed for the bot to function.
@@ -44,8 +44,21 @@ conn = sqlServer.connectToDatabase(HOSTNAME, USERNAME, PASSWD, DB)
 #      Creating the SQL Tables             #
 ############################################
 """Initializing SQL TABLES"""
+sqlServer.mysqli_query(conn, sqlTable.departmentsTable)
+sqlServer.mysqli_query(conn, sqlTable.coursesTable)
+sqlServer.mysqli_query(conn, sqlTable.academicResTable)
+sqlServer.mysqli_query(conn, sqlTable.levels)
+
+############################################
+#    Populating Course & Departments       #
+############################################
+"""Initializing Course & Department Table with numbers"""
+department_list = ['CIS','ENGR']
+sqlServer.initialize_departments(conn, department_list)
+sqlServer.initialize_courses(conn, department_list)
+
 sqlServer.mysqli_query(conn, sqlTable.usersTable)
 sqlServer.mysqli_query(conn, sqlTable.guildConfigTable)
 sqlServer.mysqli_query(conn, sqlTable.guildsTable)
-sqlServer.mysqli_query(conn, sqlTable.levels)
+
 
