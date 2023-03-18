@@ -5,6 +5,8 @@ from discord import ui
 from config import sqlServer
 from config import settings
 
+#Note: There is a bug that when it timeouts, the message interaction failed is displayed
+
 
 class Paginator(ui.View):
     def __init__(self, data, timeout=900):
@@ -75,20 +77,37 @@ class searchEngine(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @app_commands.command(name="view", description="View test resources!")
+    @app_commands.command(name="view", description="View academic resources!")
     async def view(self, interaction: discord.Interaction):
-        # Test data
-        data = [
+        try:
+            cursor = settings.conn.cursor()
+            cursor.execute("SELECT * FROM academic_resources")
+            data = cursor.fetchall()
+            cursor.close()
+        except Exception as e:
+            print(e)
+            await interaction.response.send_message("Error: Unable to fetch data from database.", ephemeral=True)
+            return
+
+        if not data:
+            await interaction.response.send_message("No academic resources found.", ephemeral=True)
+            return
+        
+        data_dict = [
             {
-                "resource_name": f"Resource {i}",
-                "resource_link": f"https://www.example.com/resource{i}",
-                "uploader_id": f"User{i}",
-                "upload_date": f"2023-03-17",
+               
+                "Course": "CIS 150",
+                "resource_name": row[2],
+                "resource_link": row[3],
+                "uploader_id": row[4],
+                "upload_date": row[5].strftime("%Y-%m-%d"),
             }
-            for i in range(1, 25)
+           
+            for row in data
+            
         ]
 
-        paginator = Paginator(data)
+        paginator = Paginator(data_dict)
         try:
             await paginator.send_initial_message(interaction)
         except Exception as e:
