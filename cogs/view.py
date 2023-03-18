@@ -46,7 +46,10 @@ class Paginator(ui.View):
         label="Previous", style=discord.ButtonStyle.primary, custom_id="previous_button", row=0
     )
     async def previous_page(self, button: discord.ui.Button, interaction: discord.Interaction):
-        self.current_page -= 1
+        if self.current_page == 0:
+            self.current_page = len(self.data) // self.items_per_page
+        else:
+            self.current_page -= 1
         try:
            await button.message.edit(embed=self.create_embed(self.get_current_page_data()), view=self)
         except Exception as e:
@@ -54,7 +57,10 @@ class Paginator(ui.View):
 
     @ui.button(label="Next", style=discord.ButtonStyle.primary, custom_id="next_button", row=0)
     async def next_page(self, button: discord.ui.Button, interaction: discord.Interaction):
-        self.current_page += 1
+        if self.current_page == len(self.data) // self.items_per_page:
+            self.current_page = 0
+        else:
+            self.current_page += 1
         try:
             await button.message.edit(embed=self.create_embed(self.get_current_page_data()), view=self)
         except Exception as e:
