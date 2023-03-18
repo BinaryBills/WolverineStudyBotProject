@@ -51,7 +51,9 @@ class Paginator(ui.View):
         else:
             self.current_page -= 1
         try:
-           await button.message.edit(embed=self.create_embed(self.get_current_page_data()), view=self)
+            await button.message.edit(embed=self.create_embed(self.get_current_page_data()), view=self)
+        except discord.errors.NotFound:
+            pass
         except Exception as e:
             print(e)
 
@@ -63,6 +65,8 @@ class Paginator(ui.View):
             self.current_page += 1
         try:
             await button.message.edit(embed=self.create_embed(self.get_current_page_data()), view=self)
+        except discord.errors.NotFound:
+            pass
         except Exception as e:
             print(e)
 
@@ -89,7 +93,6 @@ class searchEngine(commands.Cog):
             await paginator.send_initial_message(interaction)
         except Exception as e:
             print(e)
-
 
 async def setup(client):
     await client.add_cog(searchEngine(client))
