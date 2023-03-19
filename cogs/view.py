@@ -114,7 +114,7 @@ class searchEngine(commands.Cog):
         self.client = client
 
     @app_commands.command(name="view", description="View academic resources!")
-    async def view(self, interaction: discord.Interaction, keywords: str = ""):
+    async def view(self, interaction: discord.Interaction, keywords: str = "", department: str = "", course_number: int = None):
         try:
             # Grab correct information from the table
             cursor = settings.conn.cursor()
@@ -126,10 +126,22 @@ class searchEngine(commands.Cog):
                        
                        
             params = []
+            conditions = []
 
             if keywords:
-                query += " WHERE ar.resource_name LIKE %s"
-                params = (f"%{keywords}%",)
+             conditions.append("ar.resource_name LIKE %s")
+             params.append(f"%{keywords}%")
+
+            if department:
+             conditions.append("d.department_code = %s")
+             params.append(department)
+
+            if course_number is not None:
+             conditions.append("c.course_number = %s")
+             params.append(course_number)
+
+            if conditions:
+             query += " WHERE " + " AND ".join(conditions)
             
             cursor.execute(query, params)
             data = cursor.fetchall()
