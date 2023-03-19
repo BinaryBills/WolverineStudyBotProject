@@ -114,34 +114,43 @@ class searchEngine(commands.Cog):
         self.client = client
 
     @app_commands.command(name="view", description="View academic resources!")
-    async def view(self, interaction: discord.Interaction):
+    async def view(self, interaction: discord.Interaction, keywords: str = ""):
         try:
-            #Grab correct information from the table
+            # Grab correct information from the table
             cursor = settings.conn.cursor()
-            cursor.execute("SELECT * FROM academic_resources")
+            
+            query = """SELECT ar.id, ar.resource_name, d.department_code, c.course_number, ar.resource_link, ar.uploader_id, ar.upload_date
+                       FROM academic_resources ar
+                       INNER JOIN courses c ON ar.course_id = c.id
+                       INNER JOIN departments d ON c.department_id = d.id"""
+                       
+                       
+            params = []
+
+            if keywords:
+                query += " WHERE ar.resource_name LIKE %s"
+                params = (f"%{keywords}%",)
+            
+            cursor.execute(query, params)
             data = cursor.fetchall()
             cursor.close()
         except Exception as e:
             print(e)
             await interaction.response.send_message("Error: Unable to fetch data from database.", ephemeral=True)
             return
-
         if not data:
             await interaction.response.send_message("No academic resources found.", ephemeral=True)
             return
-        
+
         data_dict = [
             {
-               
-                "resource_name": row[2],
-                "course_info": await getCourse(row), 
-                "resource_link": row[3],
-                "uploader_id": row[4],
-                "upload_date": row[5].strftime("%Y-%m-%d"),
+                 "resource_name": row[1],
+                 "course_info": f"{row[2]} {row[3]}",
+                 "resource_link": row[4],
+                 "uploader_id": row[5],
+                 "upload_date": row[6].strftime("%Y-%m-%d"),
             }
-           
             for row in data
-            
         ]
 
         paginator = Paginator(data_dict)
@@ -149,7 +158,6 @@ class searchEngine(commands.Cog):
             await paginator.send_initial_message(interaction)
         except Exception as e:
             print(e)
-
-
+            
 async def setup(client):
     await client.add_cog(searchEngine(client))
