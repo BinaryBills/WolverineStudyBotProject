@@ -6,6 +6,14 @@ from config import sqlServer
 from config import settings
 import asyncio
 
+async def getCourse(row):
+  #Get course id from academic resources then find its associated row in course first
+  #From that course, extract its department and get its associated row in the department.
+  #department[1] + " " + course[2]
+  courseInfo = await sqlServer.getSpecificRow(settings.conn , "id", row[1], "courses")
+  departmentInfo = await sqlServer.getSpecificRow(settings.conn , "id", courseInfo[1], "departments")
+  return(str(" " + departmentInfo[1] + " " + courseInfo[2]))
+    
 
 class Paginator(ui.View):
     def __init__(self, data, timeout=900):
@@ -31,14 +39,14 @@ class Paginator(ui.View):
         """Sets the embed layout for the table and each singular element listed in the table"""
         embed = discord.Embed(
             title=f"Resources Page {self.current_page + 1} / {len(self.data) // self.items_per_page + 1}",
-            description="Here are the test resources:",
+            description="Here are the academic resources we found for you!:",
             color=0x303236,
         )
 
         for item in data:
             embed.add_field(
                 name=item["resource_name"],
-                value=f"Link: {item['resource_link']}\nUploader ID: {item['uploader_id']}\nDate: {item['upload_date']}",
+                value=f"Course:{item['course_info']}\nLink: {item['resource_link']}\nUploader ID: {item['uploader_id']}\nDate: {item['upload_date']}",
                 inline=False,
             )
         return embed
@@ -97,8 +105,6 @@ class Paginator(ui.View):
         except Exception as e:
             print(e)
            
-            
-            
     async def on_timeout(self):
         pass
         
@@ -127,8 +133,8 @@ class searchEngine(commands.Cog):
         data_dict = [
             {
                
-                "Course": "CIS 150",
                 "resource_name": row[2],
+                "course_info": await getCourse(row), 
                 "resource_link": row[3],
                 "uploader_id": row[4],
                 "upload_date": row[5].strftime("%Y-%m-%d"),

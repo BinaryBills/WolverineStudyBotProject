@@ -1,6 +1,6 @@
 #Author: BinaryBills
-#Creation Date: January 15, 2023
-#Date Modified: January 18, 2023
+#Creation Date: January 15, 2022
+#Date Modified: January 18, 2022
 #Purpose: The Remind command allows users to request the bot to message them at a specified time with a specific message. This functionality will help students plan study sessions.
 
 import discord
@@ -41,15 +41,17 @@ class remind(commands.Cog):
 
         unit = unit.lower()
         converted_time = await convertUnitToSeconds(unit, time)
-
-        if converted_time == -1 or time <=0:
+        
+        try:
+            time_int = int(time)
+        except ValueError:
+            await interaction.response.send_message("The time must be an integer")
+            return
+                
+        if converted_time == -1 or time_int <=0:
             await interaction.response.send_message("You didn't answer the time correctly")
             return
 
-        if converted_time == -2:
-            await interaction.response.send_message("The time must be an integer")
-            return
-        
         if (int(converted_time) > 2419000):   
          await interaction.response.send_message("Time cannot be more than 28 days!")
 
@@ -58,10 +60,8 @@ class remind(commands.Cog):
             """Discord Interactions are only active for 15 minutes so we convert it into a message
             This circumvents the issue."""
             print("Reminder noticed")
-            for x in range(0, converted_time+1):
-             await asyncio.sleep(1)
-             #print(x)
-            await channel.send(f"{user.mention} your reminder for **{task}** has finished!")
+            await asyncio.sleep(converted_time)
+            await interaction.channel.send(f"{user.mention} your reminder for **{task}** has finished!")
             
         await interaction.response.send_message(f'Started reminder for **{task}** and will last **{time} {unit}** .')
         print(f'{self.client.user} has set a reminder!')

@@ -122,21 +122,7 @@ async def getSpecificRow(connection, primaryKey, input, table):
     except Error as e:
         print(f"The error '{e}' occurred")
         
-async def get_department_name(conn, dept_id):
-    try:
-        async with conn.cursor() as cur:
-            # Execute SQL query to retrieve department name from department table
-            await cur.execute("SELECT department_name FROM department WHERE id = %s", (dept_id,))
-            # Fetch the result of the query
-            department_name = await cur.fetchone()
-            # If department name is found, return it
-            if department_name:
-                return department_name[0]
-            # Otherwise, return None
-            else:
-                return None
-    except Exception as e:
-        print(e)
+
         
 
 
