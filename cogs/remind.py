@@ -17,10 +17,7 @@ async def isUnitValid(unit):
          return False
 
 async def convertUnitToSeconds(unit, time):
-    """If the unit entered by the user is valid, we convert it to seconds. 
-    If the time entered by the user is valid and postive, we multiply it with our 
-    converted unit to find the time we need to wait.
-    """
+    """Converts the input time unit to seconds for easier calculation."""
     if (await isUnitValid(unit) == False):
         return -1
     time_units = {'s': 1, 'sec':1, 'secs':1, 'second':1, 'seconds':1, 'm':60, 'min':60, 'mins':60, 'minute':60, 'minutes':60,'h':3600, 'hr':3600, 'hour':3600, 'hours':3600, 'd':86400, 'day':86400, 'days':86400}
@@ -68,13 +65,5 @@ class remind(commands.Cog):
         await setReminder(interaction.message, interaction.channel, interaction.user, converted_time, task)
         
        
-        
-      
-
-        
-        
-        
-        
-    
 async def setup(client):
       await client.add_cog(remind(client))

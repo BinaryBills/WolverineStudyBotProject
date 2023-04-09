@@ -2,19 +2,19 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from discord import ui
-from config import sqlServer
 from config import settings
+from config import sqlServer
 import asyncio
 
 async def getCourse(row):
-  #Get course id from academic resources then find its associated row in course first
-  #From that course, extract its department and get its associated row in the department.
-  #department[1] + " " + course[2]
-  courseInfo = await sqlServer.getSpecificRow(settings.conn , "id", row[1], "courses")
-  departmentInfo = await sqlServer.getSpecificRow(settings.conn , "id", courseInfo[1], "departments")
-  return(str(" " + departmentInfo[1] + " " + courseInfo[2]))
+    try:
+        courseInfo = await sqlServer.getSpecificRow(settings.conn, "id", row[1], "courses")
+        departmentInfo = await sqlServer.getSpecificRow(settings.conn, "id", courseInfo[1], "departments")
+        return str(" " + departmentInfo[1] + " " + courseInfo[2])
+    except Exception as e:
+        print("Error in getCourse:", e)
+        return None
     
-
 class Paginator(ui.View):
     def __init__(self, data, timeout=900):
         super().__init__(timeout=timeout)
@@ -107,43 +107,46 @@ class Paginator(ui.View):
            
     async def on_timeout(self):
         pass
-        
-        
+
 class searchEngine(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @app_commands.command(name="view", description="View academic resources!")
-    async def view(self, interaction: discord.Interaction, keywords: str = "", department: str = "", course_number: int = None):
+    async def view(self, interaction: discord.Interaction, keywords: str = "", department: str = "", course_number: int = None, mentioned_user: discord.Member = None):
+        uploader_id = mentioned_user.id if mentioned_user else None  # Get the user ID from the mentioned user
+        
         try:
-            # Grab correct information from the table
             cursor = settings.conn.cursor()
             
             query = """SELECT ar.id, ar.resource_name, d.department_code, c.course_number, ar.resource_link, ar.uploader_id, ar.upload_date
                        FROM academic_resources ar
                        INNER JOIN courses c ON ar.course_id = c.id
                        INNER JOIN departments d ON c.department_id = d.id"""
-                       
-                       
+
             params = []
             conditions = []
 
             if keywords:
-             conditions.append("ar.resource_name LIKE %s")
-             params.append(f"%{keywords}%")
+                conditions.append("ar.resource_name LIKE ?")
+                params.append(f"%{keywords}%")
 
             if department:
-             conditions.append("d.department_code = %s")
-             params.append(department)
+                conditions.append("d.department_code = ?")
+                params.append(department)
 
             if course_number is not None:
-             conditions.append("c.course_number = %s")
-             params.append(course_number)
+                conditions.append("c.course_number = ?")
+                params.append(course_number)
+                
+            if uploader_id is not None:
+                conditions.append("ar.uploader_id = ?")
+                params.append(uploader_id)
 
             if conditions:
-             query += " WHERE " + " AND ".join(conditions)
-            
-            cursor.execute(query, params)
+                query += " WHERE " + " AND ".join(conditions)
+
+            cursor.execute(query, tuple(params))
             data = cursor.fetchall()
             cursor.close()
         except Exception as e:
@@ -154,22 +157,25 @@ class searchEngine(commands.Cog):
             await interaction.response.send_message("No academic resources found.", ephemeral=True)
             return
 
-        data_dict = [
-            {
-                 "resource_name": row[1],
-                 "course_info": f"{row[2]} {row[3]}",
-                 "resource_link": row[4],
-                 "uploader_id": row[5],
-                 "upload_date": row[6].strftime("%Y-%m-%d"),
-            }
-            for row in data
-        ]
+        data_dict = []
+        for row in data:
+            try:
+                data_dict.append({
+                    "resource_name": row[1],
+                    "course_info": f"{row[2]} {row[3]}",
+                    "resource_link": row[4],
+                    "uploader_id": row[5],
+                    "upload_date": row[6],
+                })
+            except Exception as e:
+                print("Error processing data:", e)
 
         paginator = Paginator(data_dict)
         try:
             await paginator.send_initial_message(interaction)
         except Exception as e:
             print(e)
-            
+
 async def setup(client):
     await client.add_cog(searchEngine(client))
+
